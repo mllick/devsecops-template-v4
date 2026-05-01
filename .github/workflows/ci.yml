@@ -1,6 +1,6 @@
 on: [push]
 
-# Cette variable supprime les warnings de dépréciation de Node.js 20
+# On peut garder ceci, mais les versions ci-dessous sont plus importantes
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
@@ -8,36 +8,42 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      # Passage de @v4 à @v5 (ou la dernière version stable)
+      - uses: actions/checkout@v5
+
       - name: Set up Python
-        uses: actions/setup-python@v5
+        # Passage de @v5 à @v6
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
+
       - name: Install dependencies
         run: |
           pip install -r backend/requirements.txt
           pip install httpx pytest bandit
+
       - name: Run tests
         env:
           DATABASE_URL: postgresql://user:pass@localhost:5432/testdb
           SECRET_KEY: temporary_secret_key_for_ci_testing
-          # Ajoute ici les variables manquantes pour Pydantic si nécessaire
           POSTGRES_USER: user
           POSTGRES_PASSWORD: pass
           POSTGRES_DB: testdb
           ALGORITHM: HS256
           ACCESS_TOKEN_EXPIRE_MINUTES: 30
         run: pytest backend/tests
+
       - name: Run security scan (Bandit)
         run: bandit -r backend/app
 
   build-docker:
-    needs: test # Défini une seule fois ici
+    needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
-      - uses: actions/checkout@v4
+      # Ne pas oublier de mettre à jour ici aussi !
+      - uses: actions/checkout@v5
+
       - name: Build Docker Image
         run: |
           docker build -t mllick/devsecops-template:latest .
-          echo "Image construite avec succès !"
