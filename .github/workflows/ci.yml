@@ -6,9 +6,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-      - run: pip install -r backend/requirements.txt
-      - run: pytest backend/tests
-      - run: bandit -r backend/app
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install -r backend/requirements.txt
+          pip install httpx pytest  # Assurez-vous qu'ils sont bien installés
+
+      - name: Run tests
+        # C'est ici qu'on injecte les variables pour Pydantic
+        env:
+          DATABASE_URL: postgresql://user:pass@localhost:5432/testdb
+          SECRET_KEY: temporary_secret_key_for_ci_testing
+        run: pytest backend/tests
+
+      - name: Run security scan (Bandit)
+        run: bandit -r backend/app
