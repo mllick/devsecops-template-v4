@@ -1,5 +1,9 @@
 on: [push]
 
+# Cette variable supprime les warnings de dépréciation de Node.js 20
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
